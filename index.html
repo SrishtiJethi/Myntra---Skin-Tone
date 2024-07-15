@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shade Suggestion</title>
+</head>
+<body>
+    <h1>Get Your Suggested Dress and Lip Shade</h1>
+    <form id="shadeForm">
+        <label for="skin_tone">Skin Tone:</label>
+        <select id="skin_tone" name="skin_tone">
+            <option value="fair">Fair</option>
+            <option value="light">Light</option>
+            <option value="medium">Medium</option>
+            <option value="olive">Olive</option>
+            <option value="tan">Tan</option>
+            <option value="dark">Dark</option>
+            <option value="deep">Deep</option>
+            <option value="porcelain">Porcelain</option>
+            <option value="ebony">Ebony</option>
+            <option value="ivory">Ivory</option>
+        </select><br><br>
+
+        <label for="hair_color">Hair Color:</label>
+        <select id="hair_color" name="hair_color">
+            <option value="blonde">Blonde</option>
+            <option value="light brown">Light Brown</option>
+            <option value="brown">Brown</option>
+            <option value="dark brown">Dark Brown</option>
+            <option value="black">Black</option>
+            <option value="red">Red</option>
+            <option value="auburn">Auburn</option>
+            <option value="chestnut">Chestnut</option>
+            <option value="gray">Gray</option>
+            <option value="platinum">Platinum</option>
+        </select><br><br>
+
+        <label for="eye_color">Eye Color:</label>
+        <select id="eye_color" name="eye_color">
+            <option value="blue">Blue</option>
+            <option value="green">Green</option>
+            <option value="hazel">Hazel</option>
+            <option value="brown">Brown</option>
+            <option value="gray">Gray</option>
+            <option value="amber">Amber</option>
+            <option value="violet">Violet</option>
+            <option value="black">Black</option>
+            <option value="teal">Teal</option>
+            <option value="turquoise">Turquoise</option>
+        </select><br><br>
+
+        <label for="lip_color">Lip Color:</label>
+        <select id="lip_color" name="lip_color">
+            <option value="pink">Pink</option>
+            <option value="peach">Peach</option>
+            <option value="nude">Nude</option>
+            <option value="red">Red</option>
+            <option value="purple">Purple</option>
+            <option value="burgundy">Burgundy</option>
+            <option value="mauve">Mauve</option>
+            <option value="coral">Coral</option>
+            <option value="brown">Brown</option>
+            <option value="plum">Plum</option>
+        </select><br><br>
+
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age" value="21"><br><br>
+
+        <label for="season">Season:</label>
+        <select id="season" name="season">
+            <option value="spring">Spring</option>
+            <option value="summer">Summer</option>
+            <option value="fall">Fall</option>
+            <option value="winter">Winter</option>
+        </select><br><br>
+
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <h2>Suggested Shades</h2>
+    <p id="suggestions"></p>
+
+    <script>
+        function submitForm() {
+            const form = document.getElementById('shadeForm');
+            const formData = new FormData(form);
+            const jsonData = JSON.stringify(Object.fromEntries(formData));
+
+            fetch('http://localhost:5000/suggest_shade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('suggestions').innerText = 
+                    `Suggested Dress Shade: ${data.dress_shade}\n Suggested Lip Shade: ${data.lip_shade}`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
