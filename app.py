@@ -1,13 +1,15 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
 import pandas as pd
 import random
 
+app = Flask(__name__)
+CORS(app)
 
-model_dress_loaded = joblib.load('model_dress.pkl')
+best_model_dress = joblib.load('model_dress.pkl')
 label_encoders = joblib.load('label_encoders.pkl')
-
 def get_compatible_lip_shade(dress_shade, skin_tone, hair_color, lip_color):
-    
     if dress_shade in ['pastel', 'neutral']:
         if skin_tone in ['fair', 'light', 'porcelain', 'ivory']:
             return random.choice(['nude', 'coral', 'peach'])
@@ -38,38 +40,34 @@ def get_compatible_lip_shade(dress_shade, skin_tone, hair_color, lip_color):
             return random.choice(['mauve', 'plum', 'bronze'])
     return random.choice(['nude', 'coral', 'rose', 'berry', 'red', 'mauve', 'plum', 'peach', 'bronze', 'cherry'])
 
-def suggest_shade(skin_tone, hair_color, lip_color, eye_color, age, season):
+@app.route('/suggest_shade', methods=['POST'])
+def suggest_shade():
+    data = request.get_json()
+    print("Received data:", data)  
+    skin_tone = data['skin_tone']
+    hair_color = data['hair_color']
+    lip_color = data['lip_color']
+    eye_color = data['eye_color']
+    age = data['age']
+    season = data['season']
+
     input_data = {
         'skin_tone': label_encoders['skin_tone'].transform([skin_tone])[0],
         'hair_color': label_encoders['hair_color'].transform([hair_color])[0],
         'lip_color': label_encoders['lip_color'].transform([lip_color])[0],
         'eye_color': label_encoders['eye_color'].transform([eye_color])[0],
-        'age': age,  
+        'age': age,
         'season': label_encoders['season'].transform([season])[0]
     }
+
     input_df = pd.DataFrame([input_data])
-    
-    
-    dress_shade_encoded = model_dress_loaded.predict(input_df)[0]
+    dress_shade_encoded = best_model_dress.predict(input_df)[0]
     dress_shade = label_encoders['dress_shade'].inverse_transform([dress_shade_encoded])[0]
-    
-    
+
     lip_shade = get_compatible_lip_shade(dress_shade, skin_tone, hair_color, lip_color)
-    
-    return dress_shade, lip_shade
+    print("Sending response:", {'dress_shade': dress_shade, 'lip_shade': lip_shade})  
 
-def get_user_input():
-    skin_tone = input("Enter your skin tone: ")
-    hair_color = input("Enter your hair color: ")
-    lip_color = input("Enter your lip color: ")
-    eye_color = input("Enter your eye color: ")
-    age = int(input("Enter your age: "))  
-    season = input("Enter the season: ")
-    
-    suggested_dress_shade, suggested_lip_shade = suggest_shade(skin_tone, hair_color, lip_color, eye_color, age, season)
-    
-    print(f'Suggested Dress Shade: {suggested_dress_shade}')
-    print(f'Suggested Lip Shade: {suggested_lip_shade}')
+    return jsonify({'dress_shade': dress_shade, 'lip_shade': lip_shade})
 
-if __name__ == "__main__":
-    get_user_input()
+if __name__ == '__main__':
+    app.run(debug=True)
